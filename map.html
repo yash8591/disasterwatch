@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Live Map — DisasterWatch</title>
+    <meta name="description"
+        content="Interactive real-time disaster map with Leaflet.js, filter by type and severity." />
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/map.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+
+<body>
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon">🛰️</div>
+            <div class="logo-text">DisasterWatch<br /><span class="logo-sub">Monitoring System</span></div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section-title">Main</div>
+            <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span>Dashboard</span></a>
+            <a href="map.html" class="nav-item active"><span class="nav-icon">🗺️</span><span>Live Map</span></a>
+            <a href="alerts.html" class="nav-item"><span class="nav-icon">🔔</span><span>Alerts</span><span
+                    class="nav-badge" id="sidebar-unread">—</span></a>
+            <div class="nav-section-title">Data</div>
+            <a href="history.html" class="nav-item"><span class="nav-icon">📁</span><span>History</span></a>
+            <div class="nav-section-title">System</div>
+            <a href="login.html" class="nav-item"><span class="nav-icon">🔓</span><span>Logout</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-avatar">A</div>
+            <div class="user-info">
+                <div class="user-name">Admin User</div>
+                <div class="user-role">Operations Manager</div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="layout-with-sidebar">
+        <!-- Header -->
+        <header class="page-header">
+            <div class="page-header-left">
+                <h2>Live Disaster Map</h2>
+                <p>Click markers to view event details · Filter by type &amp; severity</p>
+            </div>
+            <div class="page-header-right">
+                <div class="live-indicator"><span class="live-dot"></span>LIVE</div>
+                <button class="header-btn" title="Dashboard" onclick="window.location='dashboard.html'">📊</button>
+                <button class="header-btn alert-btn" onclick="window.location='alerts.html'">🔔</button>
+            </div>
+        </header>
+
+        <!-- MAP + FILTER LAYOUT -->
+        <div class="map-layout">
+
+            <!-- FILTER PANEL -->
+            <aside class="map-filter-panel">
+                <div class="filter-header">
+                    <h3>🔍 Filter Events</h3>
+                    <p id="filter-count">Showing all disasters</p>
+                </div>
+
+                <!-- Type filters -->
+                <div class="filter-section">
+                    <div class="filter-section-title">Disaster Type</div>
+                    <div class="filter-check">
+                        <input type="checkbox" id="f-earthquake" checked onchange="applyFilters()">
+                        <label for="f-earthquake">🌍 Earthquake <span class="filter-count"
+                                id="cnt-earthquake">—</span></label>
+                    </div>
+                    <div class="filter-check">
+                        <input type="checkbox" id="f-flood" checked onchange="applyFilters()">
+                        <label for="f-flood">🌊 Flood <span class="filter-count" id="cnt-flood">—</span></label>
+                    </div>
+                    <div class="filter-check">
+                        <input type="checkbox" id="f-fire" checked onchange="applyFilters()">
+                        <label for="f-fire">🔥 Wildfire <span class="filter-count" id="cnt-fire">—</span></label>
+                    </div>
+                    <div class="filter-check">
+                        <input type="checkbox" id="f-storm" checked onchange="applyFilters()">
+                        <label for="f-storm">🌪️ Storm <span class="filter-count" id="cnt-storm">—</span></label>
+                    </div>
+                    <div class="filter-check">
+                        <input type="checkbox" id="f-landslide" checked onchange="applyFilters()">
+                        <label for="f-landslide">⛰️ Landslide <span class="filter-count"
+                                id="cnt-landslide">—</span></label>
+                    </div>
+                    <div class="filter-check">
+                        <input type="checkbox" id="f-tsunami" checked onchange="applyFilters()">
+                        <label for="f-tsunami">🌊 Tsunami <span class="filter-count" id="cnt-tsunami">—</span></label>
+                    </div>
+                </div>
+
+                <!-- Severity filters -->
+                <div class="filter-section">
+                    <div class="filter-section-title">Severity</div>
+                    <div class="filter-check">
+                        <input type="checkbox" id="f-critical" checked onchange="applyFilters()">
+                        <label for="f-critical"><span class="badge badge-critical"
+                                style="padding:2px 8px">Critical</span></label>
+                    </div>
+                    <div class="filter-check">
+                        <input type="checkbox" id="f-high" checked onchange="applyFilters()">
+                        <label for="f-high"><span class="badge badge-high" style="padding:2px 8px">High</span></label>
+                    </div>
+                    <div class="filter-check">
+                        <input type="checkbox" id="f-medium" checked onchange="applyFilters()">
+                        <label for="f-medium"><span class="badge badge-medium"
+                                style="padding:2px 8px">Medium</span></label>
+                    </div>
+                    <div class="filter-check">
+                        <input type="checkbox" id="f-low" checked onchange="applyFilters()">
+                        <label for="f-low"><span class="badge badge-low" style="padding:2px 8px">Low</span></label>
+                    </div>
+                </div>
+
+                <!-- Status filter -->
+                <div class="filter-section">
+                    <div class="filter-section-title">Status</div>
+                    <div class="filter-check">
+                        <input type="checkbox" id="f-active" checked onchange="applyFilters()">
+                        <label for="f-active"><span class="status-pill status-active" style="padding:2px 9px"><span
+                                    class="status-dot"></span>Active</span></label>
+                    </div>
+                    <div class="filter-check">
+                        <input type="checkbox" id="f-resolved" checked onchange="applyFilters()">
+                        <label for="f-resolved"><span class="status-pill status-resolved" style="padding:2px 9px"><span
+                                    class="status-dot"></span>Resolved</span></label>
+                    </div>
+                    <button class="btn btn-outline btn-sm" style="width:100%;margin-top:10px;justify-content:center"
+                        onclick="resetFilters()">Reset All Filters</button>
+                </div>
+
+                <!-- Result list -->
+                <div class="map-results" id="result-list"></div>
+            </aside>
+
+            <!-- MAP -->
+            <div class="map-container">
+                <!-- Search box -->
+                <div class="map-search-box">
+                    <div class="search-wrapper">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" class="form-control" id="map-search" placeholder="Search location..."
+                            oninput="applyFilters()" />
+                    </div>
+                </div>
+
+                <div id="disaster-map"></div>
+
+                <!-- Legend -->
+                <div class="map-overlay-badge">
+                    <h4>LEGEND</h4>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:#ff4757"></div> Earthquake
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:#00d4ff"></div> Flood
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:#ff6b35"></div> Wildfire
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:#a855f7"></div> Storm
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:#f1c40f"></div> Landslide
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:#0084a8"></div> Tsunami
+                    </div>
+                    <hr style="border-color:var(--border);margin:8px 0" />
+                    <div class="legend-item" style="font-size:0.76rem;color:var(--text-muted)">⬤ Large = Critical</div>
+                    <div class="legend-item" style="font-size:0.76rem;color:var(--text-muted)">◯ Hollow = Resolved</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/mockData.js"></script>
+    <script>
+        // Loaded disaster data (from API or mock)
+        let loadedDisasters = [];
+
+        // Init Leaflet with dark tile
+        const map = L.map('disaster-map', { zoomControl: true, attributionControl: true })
+            .setView([20, 0], 2);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap © CARTO',
+            maxZoom: 18,
+        }).addTo(map);
+
+        const TYPE_COLORS = {
+            earthquake: '#ff4757', flood: '#00d4ff', fire: '#ff6b35',
+            storm: '#a855f7', landslide: '#f1c40f', tsunami: '#0084a8'
+        };
+        const SEV_RADIUS = { critical: 18, high: 13, medium: 9, low: 7 };
+
+        let markers = [];
+        let selectedId = null;
+
+        function makeMarker(d) {
+            if (!d.lat || !d.lng) return null;  // Skip if no coordinates
+            const color = TYPE_COLORS[d.type] || '#00d4ff';
+            const radius = SEV_RADIUS[d.severity] || 9;
+            const fillOp = d.status === 'active' ? 0.7 : 0.25;
+
+            const circle = L.circleMarker([d.lat, d.lng], {
+                radius, color, fillColor: color,
+                fillOpacity: fillOp, weight: 2, opacity: 0.9,
+            });
+
+            const popupHtml = `
+        <div style="font-family:'Inter',sans-serif;min-width:220px;color:#e8f4fd;background:#0f1c2e;padding:4px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <span style="font-size:1.3rem">${TYPE_CONFIG[d.type]?.emoji || '⚠️'}</span>
+            <strong style="font-size:1rem">${TYPE_CONFIG[d.type]?.label || d.type}</strong>
+          </div>
+          <div style="font-size:0.82rem;color:#8ba7c5;margin-bottom:6px">📍 ${d.location}</div>
+          <div style="margin-bottom:8px">
+            <span style="background:${color}22;color:${color};border:1px solid ${color}55;padding:2px 10px;border-radius:50px;font-size:0.75rem;font-weight:600;text-transform:uppercase">${d.severity}</span>
+            &nbsp;
+            <span style="font-size:0.78rem;color:${d.status === 'active' ? '#2ecc71' : '#8ba7c5'}">${d.status === 'active' ? '● Active' : '○ Resolved'}</span>
+          </div>
+          <div style="font-size:0.82rem;line-height:1.5;color:#8ba7c5;margin-bottom:8px">${d.description || ''}</div>
+          <div style="font-size:0.75rem;color:#4a6680">🕐 ${formatTime(d.timestamp)}</div>
+          <div style="font-size:0.7rem;color:#3a5a70;margin-top:4px">Source: ${d.source_api || 'Manual'}</div>
+        </div>`;
+
+            circle.bindPopup(popupHtml, { maxWidth: 280, className: 'dark-popup' });
+            circle.on('click', () => highlightResult(d.id));
+
+            if (d.status === 'active' && d.severity === 'critical') {
+                const pulse = L.circleMarker([d.lat, d.lng], {
+                    radius: radius + 8, color, fillColor: 'transparent',
+                    weight: 1.5, opacity: 0.4, fillOpacity: 0
+                });
+                return { circle, pulse, id: d.id };
+            }
+            return { circle, id: d.id };
+        }
+
+        function applyFilters() {
+            const types = ['earthquake', 'flood', 'fire', 'storm', 'landslide', 'tsunami'].filter(t => document.getElementById('f-' + t)?.checked);
+            const sevs = ['critical', 'high', 'medium', 'low'].filter(s => document.getElementById('f-' + s)?.checked);
+            const statuses = ['active', 'resolved'].filter(s => document.getElementById('f-' + s)?.checked);
+            const search = (document.getElementById('map-search')?.value || '').toLowerCase();
+
+            markers.forEach(m => { map.removeLayer(m.circle); if (m.pulse) map.removeLayer(m.pulse); });
+            markers = [];
+
+            const filtered = loadedDisasters.filter(d =>
+                types.includes(d.type) &&
+                sevs.includes(d.severity) &&
+                statuses.includes(d.status) &&
+                (!search || d.location.toLowerCase().includes(search) || d.type.includes(search))
+            );
+
+            document.getElementById('filter-count').textContent = `Showing ${filtered.length} of ${loadedDisasters.length} events`;
+
+            filtered.forEach(d => {
+                const m = makeMarker(d);
+                if (!m) return;
+                m.circle.addTo(map);
+                if (m.pulse) m.pulse.addTo(map);
+                markers.push(m);
+            });
+
+            renderResultList(filtered);
+        }
+
+        function updateTypeCounts() {
+            const typeCounts = { earthquake:0, flood:0, fire:0, storm:0, landslide:0, tsunami:0 };
+            loadedDisasters.forEach(d => { if (typeCounts[d.type] !== undefined) typeCounts[d.type]++; });
+            Object.keys(typeCounts).forEach(t => {
+                const el = document.getElementById('cnt-' + t);
+                if (el) el.textContent = typeCounts[t];
+            });
+        }
+
+        function renderResultList(filtered) {
+            const list = document.getElementById('result-list');
+            list.innerHTML = filtered.length ? filtered.map(d => `
+        <div class="map-result-item ${selectedId === d.id ? 'selected' : ''}" id="result-${d.id}" onclick="flyToMarker(${d.id})">
+          <div class="result-top">
+            <div class="type-icon type-${d.type}" style="width:26px;height:26px;font-size:0.9rem">${TYPE_CONFIG[d.type]?.emoji || '⚠️'}</div>
+            <span class="result-loc">${d.location}</span>
+            <span class="badge badge-${d.severity}" style="font-size:0.68rem">${d.severity}</span>
+          </div>
+          <div class="result-desc">${(d.description || '').slice(0, 100)}</div>
+          <div class="result-footer">
+            <span class="result-time">🕐 ${timeAgo(d.timestamp)}</span>
+            <span class="status-pill status-${d.status}" style="padding:2px 8px;font-size:0.7rem"><span class="status-dot"></span>${d.status}</span>
+          </div>
+        </div>`).join('') : '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:0.85rem">No disasters match filters</div>';
+        }
+
+        function flyToMarker(id) {
+            selectedId = id;
+            const d = loadedDisasters.find(x => x.id === id);
+            if (!d || !d.lat || !d.lng) return;
+            map.flyTo([d.lat, d.lng], 6, { duration: 1.2 });
+            const m = markers.find(x => x.id === id);
+            if (m) m.circle.openPopup();
+            document.querySelectorAll('.map-result-item').forEach(el => el.classList.remove('selected'));
+            const el = document.getElementById('result-' + id);
+            if (el) { el.classList.add('selected'); el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+        }
+
+        function highlightResult(id) {
+            selectedId = id;
+            document.querySelectorAll('.map-result-item').forEach(el => el.classList.remove('selected'));
+            const el = document.getElementById('result-' + id);
+            if (el) { el.classList.add('selected'); el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+        }
+
+        function resetFilters() {
+            document.querySelectorAll('.map-filter-panel input[type=checkbox]').forEach(cb => cb.checked = true);
+            document.getElementById('map-search').value = '';
+            applyFilters();
+        }
+
+        // Custom dark popup style
+        const style = document.createElement('style');
+        style.textContent = `.dark-popup .leaflet-popup-content-wrapper{background:#0f1c2e;border:1px solid rgba(0,212,255,0.2);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.5)}.dark-popup .leaflet-popup-tip{background:#0f1c2e}.leaflet-popup-close-button{color:#8ba7c5!important}`;
+        document.head.appendChild(style);
+
+        // ── Load data from API, then apply filters
+        async function loadMapData() {
+            try {
+                loadedDisasters = await fetchDisasters();
+                const unread = await fetchUnreadAlerts();
+                document.getElementById('sidebar-unread').textContent = Array.isArray(unread) ? unread.length : 0;
+            } catch (e) {
+                console.error('Map data load error:', e);
+            }
+            updateTypeCounts();
+            applyFilters();
+        }
+
+        // Init
+        loadMapData();
+
+        // Auto-refresh map every 30 seconds
+        setInterval(loadMapData, CONFIG.POLL_INTERVAL);
+    </script>
+</body>
+
+</html>

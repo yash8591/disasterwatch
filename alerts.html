@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Alerts — DisasterWatch</title>
+    <meta name="description" content="Real-time disaster alert notifications — filter, search, and manage alerts." />
+    <link rel="stylesheet" href="styles/main.css" />
+    <style>
+        .alerts-content {
+            padding: 28px 32px;
+        }
+
+        .alerts-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .alerts-toolbar .search-wrapper {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .toolbar-select {
+            padding: 11px 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 0.88rem;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .toolbar-select:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+        }
+
+        .bulk-btn {
+            padding: 9px 18px;
+            border-radius: var(--radius-sm);
+            font-size: 0.83rem;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .bulk-btn:hover {
+            color: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+        }
+
+        /* Alert rows */
+        .alert-row td {
+            padding: 16px;
+            vertical-align: middle;
+        }
+
+        .alert-row.unread {
+            background: rgba(0, 212, 255, 0.02);
+        }
+
+        .alert-row.unread td:first-child {
+            position: relative;
+        }
+
+        .alert-row.unread td:first-child::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--accent-cyan);
+            border-radius: 0 2px 2px 0;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            margin-bottom: 3px;
+        }
+
+        .alert-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .read-toggle {
+            padding: 6px 14px;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            white-space: nowrap;
+        }
+
+        .read-toggle:hover {
+            color: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+        }
+
+        .read-toggle.is-read {
+            color: var(--accent-green);
+            border-color: rgba(46, 204, 113, 0.3);
+        }
+
+        /* Summary bar */
+        .alert-summary-bar {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .summary-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 18px;
+            font-size: 0.85rem;
+        }
+
+        .summary-chip .chip-val {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        @media(max-width:700px) {
+            .alerts-toolbar {
+                flex-direction: column;
+            }
+
+            .alerts-toolbar>* {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon">🛰️</div>
+            <div class="logo-text">DisasterWatch<br /><span class="logo-sub">Monitoring System</span></div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section-title">Main</div>
+            <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span>Dashboard</span></a>
+            <a href="map.html" class="nav-item"><span class="nav-icon">🗺️</span><span>Live Map</span></a>
+            <a href="alerts.html" class="nav-item active"><span class="nav-icon">🔔</span><span>Alerts</span><span
+                    class="nav-badge" id="sidebar-unread">—</span></a>
+            <div class="nav-section-title">Data</div>
+            <a href="history.html" class="nav-item"><span class="nav-icon">📁</span><span>History</span></a>
+            <div class="nav-section-title">System</div>
+            <a href="login.html" class="nav-item"><span class="nav-icon">🔓</span><span>Logout</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-avatar">A</div>
+            <div class="user-info">
+                <div class="user-name">Admin User</div>
+                <div class="user-role">Operations Manager</div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="layout-with-sidebar">
+        <!-- Header -->
+        <header class="page-header">
+            <div class="page-header-left">
+                <h2>Alerts &amp; Notifications</h2>
+                <p>All disaster alerts with filter, search, and read-status management</p>
+            </div>
+            <div class="page-header-right">
+                <div class="live-indicator"><span class="live-dot"></span>LIVE</div>
+                <button class="header-btn" onclick="window.location='dashboard.html'">📊</button>
+                <button class="header-btn" onclick="window.location='map.html'">🗺️</button>
+            </div>
+        </header>
+
+        <main class="alerts-content">
+
+            <!-- Summary chips -->
+            <div class="alert-summary-bar" id="summary-bar"></div>
+
+            <!-- Toolbar -->
+            <div class="alerts-toolbar">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="form-control" id="alert-search"
+                        placeholder="Search alerts by location or type..." oninput="renderAlerts()" />
+                </div>
+                <select class="toolbar-select" id="filter-severity" onchange="renderAlerts()">
+                    <option value="">All Severities</option>
+                    <option value="critical">Critical</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+                <select class="toolbar-select" id="filter-type" onchange="renderAlerts()">
+                    <option value="">All Types</option>
+                    <option value="earthquake">Earthquake</option>
+                    <option value="flood">Flood</option>
+                    <option value="fire">Wildfire</option>
+                    <option value="storm">Storm</option>
+                    <option value="landslide">Landslide</option>
+                    <option value="tsunami">Tsunami</option>
+                </select>
+                <select class="toolbar-select" id="filter-read" onchange="renderAlerts()">
+                    <option value="">All Status</option>
+                    <option value="unread">Unread Only</option>
+                    <option value="read">Read Only</option>
+                </select>
+                <button class="bulk-btn" onclick="markAllRead()">✓ Mark All Read</button>
+            </div>
+
+            <!-- Table -->
+            <div class="table-card" style="border-radius:var(--radius-lg);overflow:hidden">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Alert Details</th>
+                                <th>Type</th>
+                                <th>Severity</th>
+                                <th>Time</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alerts-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="pagination"></div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/mockData.js"></script>
+    <script>
+        // Loaded alerts data
+        let loadedAlerts = [];
+        let readState = {};
+
+        const PAGE_SIZE = 10;
+        let currentPage = 1;
+
+        // ── Load alerts from API or mock
+        async function loadAlertsData() {
+            try {
+                loadedAlerts = await fetchAlerts();
+                loadedAlerts.forEach(a => {
+                    if (readState[a.id] === undefined) readState[a.id] = a.is_read;
+                });
+            } catch (e) {
+                console.error('Alerts load error:', e);
+            }
+            renderAlerts();
+        }
+
+        function getFiltered() {
+            const search = document.getElementById('alert-search').value.toLowerCase();
+            const sev = document.getElementById('filter-severity').value;
+            const type = document.getElementById('filter-type').value;
+            const read = document.getElementById('filter-read').value;
+
+            return loadedAlerts.filter(a => {
+                const matchSearch = !search || (a.location || '').toLowerCase().includes(search) || (a.type || '').includes(search) || a.message.toLowerCase().includes(search);
+                const matchSev = !sev || a.severity === sev;
+                const matchType = !type || a.type === type;
+                const isRead = readState[a.id];
+                const matchRead = !read || (read === 'read' && isRead) || (read === 'unread' && !isRead);
+                return matchSearch && matchSev && matchType && matchRead;
+            });
+        }
+
+        function renderSummary() {
+            const unread = Object.values(readState).filter(v => !v).length;
+            document.getElementById('sidebar-unread').textContent = unread;
+            document.getElementById('summary-bar').innerHTML = `
+        <div class="summary-chip"><span>🔔</span><div><div class="chip-val">${loadedAlerts.length}</div><div style="font-size:0.74rem;color:var(--text-muted)">Total Alerts</div></div></div>
+        <div class="summary-chip"><span style="color:var(--accent-red)">📭</span><div><div class="chip-val" style="color:var(--accent-red)">${unread}</div><div style="font-size:0.74rem;color:var(--text-muted)">Unread</div></div></div>
+        <div class="summary-chip"><span style="color:var(--accent-red)">🚨</span><div><div class="chip-val" style="color:var(--accent-red)">${loadedAlerts.filter(a => a.severity === 'critical').length}</div><div style="font-size:0.74rem;color:var(--text-muted)">Critical</div></div></div>
+        <div class="summary-chip"><span style="color:var(--accent-green)">✅</span><div><div class="chip-val" style="color:var(--accent-green)">${loadedAlerts.filter(a => readState[a.id]).length}</div><div style="font-size:0.74rem;color:var(--text-muted)">Read</div></div></div>`;
+        }
+
+        function renderAlerts() {
+            const filtered = getFiltered();
+            const total = filtered.length;
+            const pages = Math.ceil(total / PAGE_SIZE);
+            if (currentPage > pages) currentPage = 1;
+            const slice = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+            const tbody = document.getElementById('alerts-tbody');
+            tbody.innerHTML = slice.length ? slice.map(a => `
+        <tr class="alert-row ${readState[a.id] ? '' : 'unread'}">
+          <td style="max-width:400px">
+            <div class="alert-title">${a.message}</div>
+            <div class="alert-desc">📍 ${a.location || 'Global'}</div>
+          </td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="type-icon type-${a.type || 'storm'}" style="width:28px;height:28px;font-size:0.9rem">${TYPE_CONFIG[a.type]?.emoji || '⚠️'}</div>
+              <span style="font-size:0.84rem">${TYPE_CONFIG[a.type]?.label || a.type || 'Alert'}</span>
+            </div>
+          </td>
+          <td><span class="badge badge-${a.severity}">${a.severity}</span></td>
+          <td style="white-space:nowrap;font-size:0.82rem;color:var(--text-muted)">${timeAgo(a.timestamp)}</td>
+          <td>
+            <div style="display:flex;gap:8px;align-items:center">
+              <button class="read-toggle ${readState[a.id] ? 'is-read' : ''}" onclick="toggleRead(${a.id})">
+                ${readState[a.id] ? '✓ Read' : 'Mark Read'}
+              </button>
+              <a href="map.html" class="btn btn-outline btn-sm">Map</a>
+            </div>
+          </td>
+        </tr>`).join('')
+                : `<tr><td colspan="5" style="text-align:center;padding:60px;color:var(--text-muted)">No alerts match your filters</td></tr>`;
+
+            // Pagination
+            const pag = document.getElementById('pagination');
+            pag.innerHTML = '';
+            if (pages > 1) {
+                const prev = document.createElement('button');
+                prev.className = 'page-btn'; prev.textContent = '←';
+                prev.onclick = () => { if (currentPage > 1) { currentPage--; renderAlerts(); } };
+                pag.appendChild(prev);
+                for (let i = 1; i <= pages; i++) {
+                    const b = document.createElement('button');
+                    b.className = 'page-btn' + (i === currentPage ? ' active' : '');
+                    b.textContent = i; b.onclick = (() => { const p = i; return () => { currentPage = p; renderAlerts(); } })();
+                    pag.appendChild(b);
+                }
+                const next = document.createElement('button');
+                next.className = 'page-btn'; next.textContent = '→';
+                next.onclick = () => { if (currentPage < pages) { currentPage++; renderAlerts(); } };
+                pag.appendChild(next);
+            }
+            renderSummary();
+        }
+
+        async function toggleRead(id) {
+            readState[id] = !readState[id];
+            // Call real API to mark as read
+            if (!CONFIG.USE_MOCK && readState[id]) {
+                try {
+                    await apiCall('ALERTS_MARK_READ', { id }, 'PATCH');
+                } catch (e) { console.error('Mark read failed:', e); }
+            }
+            renderAlerts();
+        }
+
+        function markAllRead() {
+            const filtered = getFiltered();
+            filtered.forEach(a => {
+                readState[a.id] = true;
+                if (!CONFIG.USE_MOCK) {
+                    apiCall('ALERTS_MARK_READ', { id: a.id }, 'PATCH').catch(() => {});
+                }
+            });
+            renderAlerts();
+        }
+
+        // Init + auto-refresh
+        loadAlertsData();
+        setInterval(loadAlertsData, CONFIG.POLL_INTERVAL);
+    </script>
+</body>
+
+</html>

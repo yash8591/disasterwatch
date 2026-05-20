@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+backend/.env
+
+# Docker local database storage
+mysql_data/
+
+# Terraform caches & state files
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/.terraform.lock.hcl
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DisasterWatch — Real-Time Disaster Monitoring</title>
+  <meta name="description" content="Cloud-native real-time disaster alert and monitoring system. Track earthquakes, floods, storms, and more — live." />
+  <link rel="stylesheet" href="styles/main.css" />
+  <style>
+    /* ── LANDING PAGE ONLY STYLES ── */
+    body.landing { overflow-x: hidden; }
+
+    /* Hero */
+    .hero {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden; padding: 100px 24px 60px;
+    }
+    .hero-bg {
+      position: absolute; inset: 0; z-index: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,212,255,0.10) 0%, transparent 70%),
+                  radial-gradient(ellipse 50% 40% at 80% 80%, rgba(168,85,247,0.10) 0%, transparent 60%),
+                  radial-gradient(ellipse 40% 40% at 10% 90%, rgba(255,71,87,0.07) 0%, transparent 60%),
+                  var(--bg-primary);
+    }
+    .hero-grid {
+      position: absolute; inset: 0; z-index: 0;
+      background-image: linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .hero-content {
+      position: relative; z-index: 1; text-align: center; max-width: 860px; margin: 0 auto;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(0,212,255,0.07); border: 1px solid rgba(0,212,255,0.2);
+      border-radius: 50px; padding: 6px 18px; margin-bottom: 28px;
+      font-size: 0.8rem; font-weight: 600; color: var(--accent-cyan);
+      animation: fadeInUp 0.6s ease;
+    }
+    .hero h1 { margin-bottom: 24px; animation: fadeInUp 0.6s 0.1s ease both; }
+    .hero-subtitle {
+      font-size: 1.15rem; color: var(--text-secondary); max-width: 620px; margin: 0 auto 40px;
+      animation: fadeInUp 0.6s 0.2s ease both; line-height: 1.8;
+    }
+    .hero-cta { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; animation: fadeInUp 0.6s 0.3s ease both; }
+
+    /* Floating cards */
+    .hero-cards {
+      position: relative; z-index: 1; max-width: 900px; margin: 60px auto 0;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+      animation: fadeInUp 0.7s 0.4s ease both;
+    }
+    .hero-mini-card {
+      background: var(--bg-glass); backdrop-filter: blur(20px);
+      border: 1px solid var(--border); border-radius: var(--radius-md);
+      padding: 18px; text-align: left;
+    }
+    .hero-mini-card .card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .hero-mini-card .card-dot { width: 8px; height: 8px; border-radius: 50%; animation: pulse-green 2s infinite; }
+    .hero-mini-card .card-title { font-size: 0.88rem; font-weight: 600; }
+    .hero-mini-card .card-val { font-family: 'Outfit',sans-serif; font-size: 1.8rem; font-weight: 800; }
+    .hero-mini-card .card-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+    @media(max-width:700px){ .hero-cards{ grid-template-columns: 1fr; } }
+
+    /* Navbar */
+    .top-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 40px; height: 68px;
+      background: rgba(8,13,20,0.7); backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; font-family: 'Outfit',sans-serif; font-weight: 700; font-size: 1.1rem; }
+    .nav-logo .logo-badge {
+      width: 36px; height: 36px; border-radius: 9px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      display: flex; align-items: center; justify-content: center; font-size: 1rem;
+    }
+    .nav-links { display: flex; align-items: center; gap: 32px; }
+    .nav-links a { font-size: 0.88rem; color: var(--text-secondary); transition: var(--transition-fast); font-weight: 500; }
+    .nav-links a:hover { color: var(--text-primary); }
+    .nav-actions { display: flex; gap: 12px; align-items: center; }
+    @media(max-width:768px){ .nav-links { display:none; } }
+
+    /* Stats Section */
+    .stats-section {
+      padding: 80px 40px; text-align: center;
+      background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    }
+    .section-label {
+      font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;
+      color: var(--accent-cyan); margin-bottom: 12px;
+    }
+    .stats-section h2 { margin-bottom: 56px; }
+    .stats-counters { display: flex; gap: 0; justify-content: center; flex-wrap: wrap; }
+    .stat-counter {
+      flex: 1; min-width: 180px; padding: 32px 24px; text-align: center;
+      border-right: 1px solid var(--border); position: relative;
+    }
+    .stat-counter:last-child { border-right: none; }
+    .stat-counter-val { font-family: 'Outfit',sans-serif; font-size: 3rem; font-weight: 800; line-height: 1; }
+    .stat-counter-label { font-size: 0.88rem; color: var(--text-muted); margin-top: 6px; }
+    @media(max-width:600px){ .stat-counter { border-right:none; border-bottom: 1px solid var(--border); } }
+
+    /* Features */
+    .features-section { padding: 80px 40px; max-width: 1200px; margin: 0 auto; }
+    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 56px; }
+    @media(max-width:900px){ .features-grid{ grid-template-columns: 1fr; } }
+    .feature-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 32px 28px; position: relative; overflow: hidden;
+      transition: var(--transition);
+    }
+    .feature-card:hover { transform: translateY(-6px); border-color: var(--border-hover); box-shadow: var(--shadow-glow); }
+    .feature-icon {
+      width: 56px; height: 56px; border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
+      margin-bottom: 20px;
+    }
+    .feature-card h3 { font-size: 1.1rem; margin-bottom: 10px; }
+    .feature-card p { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.7; }
+    .feature-card .feature-link {
+      display: inline-flex; align-items: center; gap: 6px; margin-top: 18px;
+      font-size: 0.85rem; font-weight: 600; color: var(--accent-cyan); transition: var(--transition-fast);
+    }
+    .feature-card .feature-link:hover { gap: 10px; }
+
+    /* Recent alerts marquee section */
+    .recent-alerts-section { padding: 40px; background: var(--bg-secondary); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+    /* CTA Section */
+    .cta-section {
+      padding: 100px 40px; text-align: center;
+      background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(0,212,255,0.07) 0%, transparent 70%);
+    }
+    .cta-section h2 { margin-bottom: 16px; }
+    .cta-section p { color: var(--text-secondary); margin-bottom: 40px; font-size: 1.05rem; }
+
+    /* Footer */
+    footer {
+      background: var(--bg-secondary); border-top: 1px solid var(--border);
+      padding: 40px; display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 20px;
+    }
+    .footer-left { font-family:'Outfit',sans-serif; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+    .footer-links a { font-size: 0.85rem; color: var(--text-muted); transition: var(--transition-fast); }
+    .footer-links a:hover { color: var(--accent-cyan); }
+    .footer-copy { font-size: 0.78rem; color: var(--text-muted); width: 100%; text-align: center; padding-top: 16px; border-top: 1px solid var(--border); }
+  </style>
+</head>
+<body class="landing">
+
+  <!-- TOP NAV -->
+  <nav class="top-nav">
+    <div class="nav-logo">
+      <div class="logo-badge">🛰️</div>
+      DisasterWatch
+    </div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#stats">Stats</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="map.html">Live Map</a>
+    </div>
+    <div class="nav-actions">
+      <a href="login.html" class="btn btn-outline btn-sm">Sign In</a>
+      <a href="dashboard.html" class="btn btn-primary btn-sm">Launch App</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="live-dot"></span>
+        Live Monitoring System &nbsp;·&nbsp; Cloud-Native
+      </div>
+      <h1>
+        <span class="gradient-text">Real-Time Disaster</span><br />
+        Alert &amp; Monitoring
+      </h1>
+      <p class="hero-subtitle">
+        A cloud-native platform powered by <strong>FastAPI</strong> and <strong>MySQL</strong> that collects disaster data from global APIs, visualizes events on an interactive map, and delivers instant alerts — at scale.
+      </p>
+      <div class="hero-cta">
+        <a href="dashboard.html" class="btn btn-primary">🛡️ Open Dashboard</a>
+        <a href="map.html" class="btn btn-outline">🗺️ View Live Map</a>
+      </div>
+
+      <!-- Mini stat cards -->
+      <div class="hero-cards">
+        <div class="hero-mini-card">
+          <div class="card-top">
+            <div class="card-dot" style="background:var(--accent-red)"></div>
+            <div class="card-title">Active Disasters</div>
+          </div>
+          <div class="card-val gradient-text" id="hero-active">—</div>
+          <div class="card-sub">Across 6 disaster types</div>
+        </div>
+        <div class="hero-mini-card">
+          <div class="card-top">
+            <div class="card-dot" style="background:var(--accent-cyan)"></div>
+            <div class="card-title">Alerts Issued</div>
+          </div>
+          <div class="card-val gradient-text-cyan" id="hero-alerts">—</div>
+          <div class="card-sub">Updated every 30 seconds</div>
+        </div>
+        <div class="hero-mini-card">
+          <div class="card-top">
+            <div class="card-dot" style="background:var(--accent-green)"></div>
+            <div class="card-title">Regions Covered</div>
+          </div>
+          <div class="card-val" style="color:var(--accent-green)" id="hero-regions">—</div>
+          <div class="card-sub">Global coverage</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECENT ALERTS TICKER -->
+  <div class="recent-alerts-section">
+    <div class="ticker-wrapper">
+      <div class="ticker-label">🔴 LIVE ALERTS</div>
+      <div class="ticker-content">
+        <div class="ticker-track" id="landing-ticker">
+          <span class="ticker-item">Loading alerts...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <section class="stats-section" id="stats">
+    <div class="section-label">Platform Scale</div>
+    <h2>Trusted monitoring at <span class="gradient-text">global scale</span></h2>
+    <div class="stats-counters">
+      <div class="stat-counter">
+        <div class="stat-counter-val gradient-text">2.4M+</div>
+        <div class="stat-counter-label">Data points processed/day</div>
+      </div>
+      <div class="stat-counter">
+        <div class="stat-counter-val gradient-text-cyan">150+</div>
+        <div class="stat-counter-label">Countries monitored</div>
+      </div>
+      <div class="stat-counter">
+        <div class="stat-counter-val" style="color:var(--accent-purple)">99.9%</div>
+        <div class="stat-counter-label">System uptime</div>
+      </div>
+      <div class="stat-counter">
+        <div class="stat-counter-val" style="color:var(--accent-green)">&lt;2s</div>
+        <div class="stat-counter-label">Alert delivery time</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features-section" id="features">
+    <div style="text-align:center">
+      <div class="section-label">Core Features</div>
+      <h2>Everything you need to <span class="gradient-text">monitor disasters</span></h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(255,71,87,0.12)">🛡️</div>
+        <h3>Real-Time Alert Dashboard</h3>
+        <p>Track active disasters with live-updating stats, severity indicators, and an auto-refreshing ticker showing the latest events worldwide.</p>
+        <a href="dashboard.html" class="feature-link">Open Dashboard →</a>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(0,212,255,0.1)">🗺️</div>
+        <h3>Interactive Disaster Map</h3>
+        <p>Visualize disaster locations on a global map with color-coded markers by type. Click any marker for full event details and filter by type or severity.</p>
+        <a href="map.html" class="feature-link">View Map →</a>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(168,85,247,0.12)">🔔</div>
+        <h3>Smart Notifications</h3>
+        <p>Receive sorted, filterable alerts with severity-coded badges. Mark alerts as read and export data — all connected to a FastAPI + MySQL backend.</p>
+        <a href="alerts.html" class="feature-link">View Alerts →</a>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(241,196,15,0.1)">📊</div>
+        <h3>Historical Data Analysis</h3>
+        <p>Browse historical disaster records with sortable tables and timeline charts. Export data to CSV for further analysis.</p>
+        <a href="history.html" class="feature-link">View History →</a>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(46,204,113,0.1)">🐍</div>
+        <h3>Python FastAPI Backend</h3>
+        <p>Built for seamless integration with a FastAPI + MySQL backend. All API endpoints are pre-stubbed — just flip <code>USE_MOCK = false</code> to connect.</p>
+        <a href="#" class="feature-link">Backend Docs →</a>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(255,107,53,0.1)">☁️</div>
+        <h3>Cloud-Native Deployment</h3>
+        <p>Designed for Docker + Kubernetes deployment with Terraform-managed AWS infrastructure. Scales automatically under load.</p>
+        <a href="#" class="feature-link">Architecture →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <h2>Ready to monitor disasters <span class="gradient-text">in real time?</span></h2>
+    <p>No setup needed — explore the full dashboard with live mock data right now.</p>
+    <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+      <a href="dashboard.html" class="btn btn-primary">🚀 Launch Dashboard</a>
+      <a href="login.html" class="btn btn-outline">Create Account</a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-left">🛰️ DisasterWatch</div>
+    <div class="footer-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="map.html">Live Map</a>
+      <a href="alerts.html">Alerts</a>
+      <a href="history.html">History</a>
+      <a href="login.html">Login</a>
+    </div>
+    <div class="footer-copy">© 2026 DisasterWatch — Cloud-Native Real-Time Disaster Alert &amp; Monitoring System</div>
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/mockData.js"></script>
+  <script>
+    // Populate hero mini cards
+    document.getElementById('hero-active').textContent  = DISASTER_STATS.active;
+    document.getElementById('hero-alerts').textContent  = MOCK_ALERTS.length;
+    document.getElementById('hero-regions').textContent = DISASTER_STATS.regions;
+
+    // Landing ticker
+    const ticker = document.getElementById('landing-ticker');
+    const items = MOCK_DISASTERS.filter(d=>d.status==='active').map(d=>
+      `<span class="ticker-item">🚨 <span>[${d.type.toUpperCase()}]</span> ${d.location} — ${d.description.slice(0,70)}...</span>`
+    );
+    const doubled = [...items, ...items].join(' &nbsp;&nbsp;&nbsp;');
+    ticker.innerHTML = doubled;
+
+    // Scroll-reveal
+    const obs = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('animate-fade-up'); obs.unobserve(e.target); } });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.feature-card, .stat-counter').forEach(el=>obs.observe(el));
+  </script>
+</body>
+</html>

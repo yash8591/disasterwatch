@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — DisasterWatch</title>
+    <meta name="description" content="Real-time disaster monitoring dashboard with live alerts, stats, and charts." />
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/dashboard.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon">🛰️</div>
+            <div class="logo-text">
+                DisasterWatch<br />
+                <span class="logo-sub">Monitoring System</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section-title">Main</div>
+            <a href="dashboard.html" class="nav-item active" id="nav-dashboard">
+                <span class="nav-icon">📊</span><span>Dashboard</span>
+            </a>
+            <a href="map.html" class="nav-item" id="nav-map">
+                <span class="nav-icon">🗺️</span><span>Live Map</span>
+            </a>
+            <a href="alerts.html" class="nav-item" id="nav-alerts">
+                <span class="nav-icon">🔔</span><span>Alerts</span>
+                <span class="nav-badge" id="sidebar-unread">—</span>
+            </a>
+            <div class="nav-section-title">Data</div>
+            <a href="history.html" class="nav-item" id="nav-history">
+                <span class="nav-icon">📁</span><span>History</span>
+            </a>
+            <div class="nav-section-title">System</div>
+            <a href="login.html" class="nav-item"><span class="nav-icon">🔓</span><span>Logout</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-avatar" id="user-avatar">A</div>
+            <div class="user-info">
+                <div class="user-name" id="user-name">Admin User</div>
+                <div class="user-role">Operations Manager</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN LAYOUT -->
+    <div class="layout-with-sidebar">
+        <!-- Header -->
+        <header class="page-header">
+            <div class="page-header-left">
+                <h2>Operations Dashboard</h2>
+                <p>Real-time disaster monitoring &amp; alert management</p>
+            </div>
+            <div class="page-header-right">
+                <div class="live-indicator"><span class="live-dot"></span>LIVE</div>
+                <button class="header-btn alert-btn" title="Notifications"
+                    onclick="window.location='alerts.html'">🔔</button>
+                <button class="header-btn" title="Refresh" onclick="refreshDashboard()">🔄</button>
+                <button class="header-btn" title="Map" onclick="window.location='map.html'">🗺️</button>
+            </div>
+        </header>
+
+        <!-- CONTENT -->
+        <main class="dashboard-content">
+
+            <!-- STATS GRID -->
+            <div class="stats-grid" id="stats-grid">
+                <div class="stat-card" style="--card-accent:var(--accent-red);--icon-bg:rgba(255,71,87,0.12)">
+                    <div class="stat-card-header">
+                        <div class="stat-icon">🚨</div>
+                        <div class="stat-trend up" id="trend-active">↑ Active</div>
+                    </div>
+                    <div class="stat-value" id="stat-active">—</div>
+                    <div class="stat-label">Active Disasters</div>
+                    <div class="stat-sub" id="stat-active-sub">Loading...</div>
+                </div>
+                <div class="stat-card" style="--card-accent:var(--accent-orange);--icon-bg:rgba(255,107,53,0.12)">
+                    <div class="stat-card-header">
+                        <div class="stat-icon">⚠️</div>
+                        <div class="stat-trend up" id="trend-critical">Critical</div>
+                    </div>
+                    <div class="stat-value" id="stat-critical">—</div>
+                    <div class="stat-label">Critical Severity</div>
+                    <div class="stat-sub" id="stat-critical-sub">Loading...</div>
+                </div>
+                <div class="stat-card" style="--card-accent:var(--accent-purple);--icon-bg:rgba(168,85,247,0.12)">
+                    <div class="stat-card-header">
+                        <div class="stat-icon">🌍</div>
+                        <div class="stat-trend down">Covered</div>
+                    </div>
+                    <div class="stat-value" id="stat-regions">—</div>
+                    <div class="stat-label">Regions Affected</div>
+                    <div class="stat-sub">Global coverage active</div>
+                </div>
+                <div class="stat-card" style="--card-accent:var(--accent-green);--icon-bg:rgba(46,204,113,0.12)">
+                    <div class="stat-card-header">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-trend down">Resolved</div>
+                    </div>
+                    <div class="stat-value" id="stat-resolved">—</div>
+                    <div class="stat-label">Disasters Resolved</div>
+                    <div class="stat-sub" id="stat-refresh">Last updated now</div>
+                </div>
+            </div>
+
+            <!-- LIVE TICKER -->
+            <div class="ticker-block">
+                <div class="ticker-wrapper">
+                    <div class="ticker-label">🔴 LIVE ALERTS</div>
+                    <div class="ticker-content">
+                        <div class="ticker-track" id="alert-ticker">—</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHARTS ROW -->
+            <div class="dashboard-grid">
+                <!-- Severity donut -->
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <div>
+                            <h3>Severity Distribution</h3>
+                            <div class="chart-subtitle">All active disasters by severity level</div>
+                        </div>
+                        <span class="badge badge-critical">Live</span>
+                    </div>
+                    <div class="chart-container" style="height:220px">
+                        <canvas id="severity-chart"></canvas>
+                    </div>
+                </div>
+                <!-- Disaster type bar -->
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <div>
+                            <h3>Disaster Type Breakdown</h3>
+                            <div class="chart-subtitle">Number of events per category</div>
+                        </div>
+                    </div>
+                    <div class="chart-container" style="height:220px">
+                        <canvas id="type-chart"></canvas>
+                    </div>
+                </div>
+                <!-- Timeline line chart -->
+                <div class="chart-card full-width">
+                    <div class="chart-card-header">
+                        <div>
+                            <h3>Activity Timeline (Last 30 Days)</h3>
+                            <div class="chart-subtitle">Disaster events over time</div>
+                        </div>
+                        <a href="history.html" class="btn btn-outline btn-sm">View History</a>
+                    </div>
+                    <div class="chart-container" style="height:180px">
+                        <canvas id="timeline-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RECENT DISASTERS TABLE -->
+            <div class="table-card">
+                <div class="table-card-header">
+                    <div>
+                        <h3>Recent Disaster Events</h3>
+                    </div>
+                    <div style="display:flex;gap:10px;align-items:center">
+                        <span class="refresh-text" id="last-refresh">Updated just now</span>
+                        <a href="alerts.html" class="btn btn-outline btn-sm">View All Alerts</a>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table id="disaster-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Location</th>
+                                <th>Severity</th>
+                                <th>Status</th>
+                                <th>Time</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="disaster-tbody">
+                            <tr>
+                                <td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">Loading
+                                    disasters...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/mockData.js"></script>
+    <script>
+        // ── Sidebar user
+        const email = localStorage.getItem('user_email') || 'admin@dw.io';
+        document.getElementById('user-name').textContent = email.split('@')[0];
+        document.getElementById('user-avatar').textContent = email[0].toUpperCase();
+
+        // ── Chart defaults
+        Chart.defaults.color = '#8ba7c5';
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.plugins.legend.labels.boxWidth = 12;
+
+        // Chart instances (so we can update them on refresh)
+        let sevChart, typeChart, timelineChart;
+
+        // ── Build Charts (called once)
+        function initCharts() {
+            sevChart = new Chart(document.getElementById('severity-chart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Critical', 'High', 'Medium', 'Low'],
+                    datasets: [{ data: [0,0,0,0], backgroundColor: ['#ff4757','#ff6b35','#f1c40f','#2ecc71'], borderWidth:2, borderColor:'#0f1c2e', hoverOffset:6 }]
+                },
+                options: { responsive:true, maintainAspectRatio:false, cutout:'68%', plugins:{ legend:{ position:'right' } } }
+            });
+
+            typeChart = new Chart(document.getElementById('type-chart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Earthquake','Flood','Wildfire','Storm','Landslide','Tsunami'],
+                    datasets: [{ label:'Events', data:[0,0,0,0,0,0],
+                        backgroundColor: ['#ff475733','#00d4ff33','#ff6b3533','#a855f733','#f1c40f33','#0084a833'],
+                        borderColor: ['#ff4757','#00d4ff','#ff6b35','#a855f7','#f1c40f','#0084a8'],
+                        borderWidth:1.5, borderRadius:6
+                    }]
+                },
+                options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{grid:{color:'rgba(0,212,255,0.06)'},ticks:{stepSize:1}}, x:{grid:{display:false}} } }
+            });
+
+            const days = Array.from({length:30}, (_,i)=>{ const d=new Date(); d.setDate(d.getDate()-29+i); return d.toLocaleDateString('en',{month:'short',day:'numeric'}); });
+            timelineChart = new Chart(document.getElementById('timeline-chart'), {
+                type: 'line',
+                data: { labels:days, datasets:[{ label:'Events', data:Array(30).fill(0), borderColor:'#00d4ff', backgroundColor:'rgba(0,212,255,0.08)', tension:0.45, fill:true, pointRadius:3, pointBackgroundColor:'#00d4ff' }] },
+                options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{grid:{color:'rgba(0,212,255,0.06)'},ticks:{stepSize:1},min:0}, x:{grid:{display:false},ticks:{maxTicksLimit:8}} } }
+            });
+        }
+
+        // ── Update Charts with real data
+        function updateCharts(disasters) {
+            // Severity donut
+            const sevCounts = { critical:0, high:0, medium:0, low:0 };
+            disasters.forEach(d => { if(sevCounts[d.severity]!==undefined) sevCounts[d.severity]++; });
+            sevChart.data.datasets[0].data = Object.values(sevCounts);
+            sevChart.update();
+
+            // Type bar
+            const typeCounts = { earthquake:0, flood:0, fire:0, storm:0, landslide:0, tsunami:0 };
+            disasters.forEach(d => { if(typeCounts[d.type]!==undefined) typeCounts[d.type]++; });
+            typeChart.data.datasets[0].data = Object.values(typeCounts);
+            typeChart.update();
+
+            // Timeline (count events per day from last 30 days)
+            const now = new Date();
+            const dayCounts = Array(30).fill(0);
+            disasters.forEach(d => {
+                const diff = Math.floor((now - new Date(d.timestamp)) / 86400000);
+                if (diff >= 0 && diff < 30) dayCounts[29 - diff]++;
+            });
+            timelineChart.data.datasets[0].data = dayCounts;
+            timelineChart.update();
+        }
+
+        // ── Render Table
+        function renderTable(disasters) {
+            const tbody = document.getElementById('disaster-tbody');
+            if (!disasters.length) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">No disasters found. Backend may still be loading data...</td></tr>';
+                return;
+            }
+            tbody.innerHTML = disasters.slice(0, 12).map(d => `
+        <tr>
+          <td class="primary-col">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="type-icon type-${d.type}">${TYPE_CONFIG[d.type]?.emoji || '⚠️'}</div>
+              ${TYPE_CONFIG[d.type]?.label || d.type}
+            </div>
+          </td>
+          <td>${d.location}</td>
+          <td><span class="badge badge-${d.severity}">${d.severity}</span></td>
+          <td>
+            <span class="status-pill status-${d.status}">
+              <span class="status-dot"></span>${d.status}
+            </span>
+          </td>
+          <td>${timeAgo(d.timestamp)}</td>
+          <td>
+            <a href="map.html" class="btn btn-outline btn-sm">View Map</a>
+          </td>
+        </tr>`).join('');
+        }
+
+        // ── Render Ticker
+        function renderTicker(disasters) {
+            const activeItems = disasters.filter(d => d.status === 'active');
+            if (!activeItems.length) {
+                document.getElementById('alert-ticker').innerHTML = '<span class="ticker-item">No active disasters — all clear ✅</span>';
+                return;
+            }
+            const tickerHtml = [...activeItems, ...activeItems].map(d =>
+                `<span class="ticker-item">🚨 <span>[${TYPE_CONFIG[d.type]?.emoji || '⚠️'} ${d.type.toUpperCase()}]</span> ${d.location} — Severity: <span>${d.severity.toUpperCase()}</span></span>`
+            ).join('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+            document.getElementById('alert-ticker').innerHTML = tickerHtml;
+        }
+
+        // ── Main data loader — calls real API or falls back to mock
+        async function loadDashboardData() {
+            try {
+                // Fetch from API (or mock)
+                const [disasters, stats, unreadAlerts] = await Promise.all([
+                    fetchDisasters(),
+                    fetchStats(),
+                    fetchUnreadAlerts(),
+                ]);
+
+                // Stats
+                document.getElementById('stat-active').textContent = stats.active || 0;
+                document.getElementById('stat-critical').textContent = stats.critical || 0;
+                document.getElementById('stat-regions').textContent = stats.regions || 0;
+                document.getElementById('stat-resolved').textContent = stats.resolved || 0;
+                document.getElementById('stat-active-sub').textContent = `Out of ${stats.total || 0} total events`;
+                document.getElementById('stat-critical-sub').textContent = `${stats.active || 0} still active`;
+
+                // Unread badge
+                document.getElementById('sidebar-unread').textContent = Array.isArray(unreadAlerts) ? unreadAlerts.length : 0;
+
+                // Ticker
+                renderTicker(disasters);
+
+                // Charts
+                updateCharts(disasters);
+
+                // Table
+                renderTable(disasters);
+
+                // Update refresh timestamp
+                document.getElementById('last-refresh').textContent = 'Updated just now';
+                document.getElementById('stat-refresh').textContent = `Updated ${new Date().toLocaleTimeString()}`;
+
+                console.log(`✅ Dashboard loaded: ${disasters.length} disasters, ${stats.active} active`);
+
+            } catch (err) {
+                console.error('Dashboard load error:', err);
+                document.getElementById('stat-active-sub').textContent = '⚠️ Backend offline — showing cached data';
+            }
+        }
+
+        // ── Initialize
+        initCharts();
+        loadDashboardData();
+
+        // ── Auto-refresh every 30 seconds
+        setInterval(loadDashboardData, CONFIG.POLL_INTERVAL);
+
+        function refreshDashboard() { loadDashboardData(); }
+    </script>
+</body>
+
+</html>
