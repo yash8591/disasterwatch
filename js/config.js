@@ -138,3 +138,34 @@ async function fetchUnreadAlerts() {
         return [];
     }
 }
+
+// ─── ROUTE PROTECTION & SECURE LOGOUT ─────────────────────────────────────────
+(function() {
+    // Pages that require a user to be authenticated
+    const protectedPages = ["dashboard.html", "map.html", "alerts.html", "history.html"];
+    
+    // Get the current page filename (e.g. "dashboard.html")
+    const currentPage = window.location.pathname.split("/").pop().toLowerCase();
+    
+    // If we are on a protected page, and NOT in mock mode, check credentials
+    if (protectedPages.includes(currentPage) && !CONFIG.USE_MOCK) {
+        const token = localStorage.getItem("auth_token");
+        if (!token) {
+            console.warn("🔐 Access denied. Redirecting to login.html...");
+            window.location.href = "login.html";
+        }
+    }
+
+    // Secure Logout handler
+    document.addEventListener("DOMContentLoaded", () => {
+        // Find any logout links (links pointing to login.html)
+        const logoutLinks = document.querySelectorAll('a[href="login.html"]');
+        logoutLinks.forEach(link => {
+            link.addEventListener("click", (e) => {
+                console.info("🔒 Logging out... Clearing secure session.");
+                localStorage.removeItem("auth_token");
+                localStorage.removeItem("user_email");
+            });
+        });
+    });
+})();
